@@ -6,14 +6,16 @@ import seaborn as sns
 import streamlit as st
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, accuracy_score, calinski_harabasz_score
 from PIL import Image
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
+# ---------------------- RUN THE APP ----------------------
 # cd C:\Users\Edoardo\Documents\GitHub\Social_Research_2022_2023-HappinessCorruption
 # streamlit run happiness.py
 
+# ---------------------- IMPORT DATASET ----------------------
 happiness_df = pd.read_csv('WorldHappiness_Corruption_2015_2020.csv')
-
 
 st.title('Does money make happiness?')
 st.subheader('Yes, but not only.')
@@ -23,20 +25,19 @@ st.write('''
     The data used in this dataset Sustainable Development Solutions Network's and the data is referred to 2015-2020.
     ''')
 
+# ---------------------- COVER IMAGE ----------------------
 image = Image.open('cover.jfif')
-# image = Image.open('cover2.jpg')
 st.image(image)
-
 sns.set(style="whitegrid", palette="pastel", color_codes=True)
 sns.mpl.rc("figure", figsize=(10,6))
 
+# ---------------------- SIDEBAR ----------------------
 st.sidebar.subheader('Sections')
 
-# Dataset
+# ---------------------- DATASET SECTION ----------------------
 if st.sidebar.checkbox('Dataset'):
     st.header('Happiness Dataset')
     st.write(happiness_df)
-
     st.write('''
         - **happiness_score**: average of responses to the primary life evaluation question from the Gallup World Poll (GWP).
         - **gdp_per_capita**: the extent to which GDP contributes to the calculation of the Happiness Score.
@@ -53,13 +54,13 @@ if st.sidebar.checkbox('Dataset'):
         - **cpi_score**: corruption perception index (the higher the better).
         ''')
 
-# correlation matrix
+# ---------------------- CORRELATION MATRIX SECTION ----------------------
 if st.sidebar.checkbox('Correlation Matrix'):
     st.header('Correlation Matrix')
     corr = happiness_df.corr()
-    fig, ax = plt.subplots(figsize=(8, 8))
-    sns.heatmap(corr, annot=True, cmap='coolwarm', linewidths=0.5, ax=ax)
-    st.pyplot(fig)
+    fig1, ax1 = plt.subplots(figsize=(8, 8))
+    sns.heatmap(corr, annot=True, cmap='coolwarm', linewidths=0.5, ax=ax1)
+    st.pyplot()
     
     st.markdown('''
         The Correlation Matrix show that the :green[**most correlated variables**] with Happiness are:
@@ -76,7 +77,7 @@ if st.sidebar.checkbox('Correlation Matrix'):
         - **Social Support** :red[(0.19)]
         ''')
 
-# Distribution and descriptive statistics for each variable
+# ---------------------- DESCRIPTIVE STATISTICS & DISTRIBUTION SECTION ----------------------
 if st.sidebar.checkbox('Descriptive Statistics & Distribution'):
     st.header('Descriptive Statistics & Distribution')
     st.subheader('Descriptive Statistics')
@@ -95,7 +96,8 @@ if st.sidebar.checkbox('Descriptive Statistics & Distribution'):
     sns.histplot(happiness_df['generosity'], kde=True, ax=ax[2, 0], color='#fdbf6f').set_title('Distribution of Generosity Score')
     sns.histplot(happiness_df['family'], kde=True, ax=ax[2, 1], color='#ff7f00').set_title('Distribution of Family Score')
     sns.histplot(happiness_df['dystopia_residual'], kde=True, ax=ax[2, 2], color='#cab2d6').set_title('Distribution of Dystopia Residual')
-    st.pyplot(fig)
+    plt.subplots_adjust(wspace=0.3, hspace=0.3)  # Adjust the spacing between subplots
+    st.pyplot()
 
     st.markdown('''
         - **Happiness Score**:
@@ -140,7 +142,8 @@ if st.sidebar.checkbox('Descriptive Statistics & Distribution'):
     sns.boxplot(x=happiness_df['generosity'], ax=ax[2, 0], color='#fdbf6f').set_title('Boxplot of Generosity Score')
     sns.boxplot(x=happiness_df['family'], ax=ax[2, 1], color='#ff7f00').set_title('Boxplot of Family Score')
     sns.boxplot(x=happiness_df['dystopia_residual'], ax=ax[2, 2], color='#cab2d6').set_title('Boxplot of Dystopia Residual')
-    st.pyplot(fig)
+    plt.subplots_adjust(wspace=0.3, hspace=0.3)  # Adjust the spacing between subplots
+    st.pyplot()
     st.write('''
         - **Happiness Score**:
             - _Median value_: 5.4
@@ -171,6 +174,7 @@ if st.sidebar.checkbox('Descriptive Statistics & Distribution'):
             - _Range_: [0.0-3.8]
         ''')
 
+# ------------------------------ HAPPINESS SCORE TRENDS ------------------------------
 if st.sidebar.checkbox('Happiness Score Trends'):
     
     # ------------------------------ Happiness by Continent in the years ------------------------------
@@ -309,7 +313,7 @@ if st.sidebar.checkbox('Happiness Score Trends'):
             We can see that in the most of the cases there is a positive correlation between Happiness and GDP per Capita in each continent.
             ''')
     
-    # ------------------------------ Happiness Score and Health Score in all Continents ------------------------------
+    # ........... Happiness vs Health ...........
     st.subheader('Happiness vs Health')
     with st.expander('Click here to show/hide the plots'):
         
@@ -444,7 +448,7 @@ if st.sidebar.checkbox('Happiness Score Trends'):
             Asia and Australia.
             ''')
 
-    # ------------------------------ Happiness Score and Corruption ------------------------------
+    # ................ Happiness vs Corruption ................
     st.subheader('Happiness vs Corruption')
     with st.expander('Click here to show/hide the plots'):
         
@@ -578,7 +582,7 @@ if st.sidebar.checkbox('Happiness Score Trends'):
             We can see that in the most of the cases there is a positive correlation between Happiness and Corruption.
             ''')
 
-    # ------------------------------ Happiness Score and Family Score in all Continents ------------------------------
+    # ............... Happiness vs Family ...............
     st.subheader('Happiness vs Family')
     with st.expander('Click here to show/hide the plots'):
         
@@ -713,7 +717,7 @@ if st.sidebar.checkbox('Happiness Score Trends'):
             between Happiness and Family Score.
             ''')
     
-    # ------------------------------ Happiness Score and Generosity Score in all Continents ------------------------------
+    # ............ Happiness vs Generosity ............
     st.subheader('Happiness vs Generosity')
     with st.expander('Click here to show/hide the plots'):
         
@@ -847,7 +851,7 @@ if st.sidebar.checkbox('Happiness Score Trends'):
             We can see that in Europe and in Africa there is a negative correlation between Happiness and Generosity Score.
             ''')
 
-    # ------------------------------ Happiness Score and Social Support Score in all Continents ------------------------------
+    # ............ Happiness vs Social Support ............
     st.subheader('Happiness vs Social Support')
     with st.expander('Click here to show/hide the plots'):
         
@@ -981,6 +985,7 @@ if st.sidebar.checkbox('Happiness Score Trends'):
             We can see that only in Europe and in Africa there is a positive correlation between Happiness and Social Support.
             ''')
     
+# ---------------------------------- CLUSTERING SECTION ----------------------------------
 if st.sidebar.checkbox('Clustering'):
     # ---------------------------------- K-Means++ Clustering ----------------------------------
     st.subheader('K-Means++ Clustering')
@@ -989,22 +994,49 @@ if st.sidebar.checkbox('Clustering'):
 
     # create a copy of the dataframe adding a new column based on the happiness score
     kmeans_df = happiness_df.copy()
-    kmeans_df['country_type'] = 'Unknown'
 
-    # Update "unhappy_countries" based on happiness_score from 0 to 2.6
-    kmeans_df.loc[(kmeans_df['happiness_score'] >= 0) & (kmeans_df['happiness_score'] <= 3.8), 'country_type'] = 'unhappy_countries'
-
-    # Update "happy_countries" based on happiness_score from 5.2 to 7.8
-    kmeans_df.loc[(kmeans_df['happiness_score'] > 3.8) & (kmeans_df['happiness_score'] <= 7.8), 'country_type'] = 'happy_countries'
+    # remove the country with 0 on social support
+    kmeans_df = kmeans_df[kmeans_df['social_support'] != 0]
+    # Scale the variables
+    scaler = StandardScaler()
+    # scaler = MinMaxScaler()
+    
+    kmeans_df['cpi_score'] = scaler.fit_transform(kmeans_df[['cpi_score']])
 
     # Get available features for selection
-    available_features = ['gdp_per_capita', 'health', 'cpi_score', 
-                                             'freedom', 'family', 'generosity',
-                                             'government_trust', 'social_support']
+    available_features = ['gdp_per_capita', 'health',
+                          'freedom', 'family', 'generosity',
+                          'government_trust', 
+                          #'social_support', 
+                          #'cpi_score', 
+                          #'happiness_score'
+                          ]
+    
+    # elbow method to find the optimal number of clusters
+    X = kmeans_df[available_features].values
+    X_scaled = scaler.fit_transform(X)
+    
+    # Find the optimal number of clusters
+    wcss = []
+    for i in range(1, 11):
+        kmeans = KMeans(n_clusters=i, init='k-means++', random_state=0)
+        kmeans.fit(X)
+        wcss.append(kmeans.inertia_)
+
+    # Plot the elbow method results
+    plt.plot(range(1, 11), wcss)
+    plt.title('Elbow Method')
+    plt.xlabel('Number of clusters')
+    plt.ylabel('WCSS')
+    plt.xticks(range(1, 11))
+    n_clusters = 3  # Set a default value
+    # Add a line indicating the best number of clusters
+    plt.axvline(x=n_clusters, color='red', linestyle='--', label='Optimal Number of Clusters')
+    plt.legend()
+    st.pyplot()
 
     # Select features for clustering
     selected_features = st.multiselect('Select features for clustering', available_features)
-
     if selected_features:
         # Perform dimensionality reduction using PCA
         kmeans_df_selected = kmeans_df[selected_features]
@@ -1015,23 +1047,33 @@ if st.sidebar.checkbox('Clustering'):
             kmeans_df_pca = PCA(n_components=2).fit_transform(kmeans_df_selected)
 
         # Perform K-means clustering with 2 clusters
-        kmeans = KMeans(n_clusters=2, init='k-means++', random_state=0)
+        kmeans = KMeans(n_clusters=3, init='k-means++', random_state=0)
         labels = kmeans.fit_predict(kmeans_df_pca)
 
         # Define country types and colors
-        country_types = ['Unhappy Countries', 'Happy Countries']
-        colors = ['red', 'green']
+        country_types = ['Unhappy Countries', 'Happy Countries', 'Neutral Countries']
+        colors = ['red', 'green', 'blue']
+
+
+        # Calculate the means of the selected clusters
+        cluster_means = []
+        for cluster in range(n_clusters):
+            cluster_mean = kmeans_df.loc[labels == cluster, selected_features].mean()
+            cluster_means.append(cluster_mean)
 
         # Plot the results
         plt.figure(figsize=(10, 8))
         if len(selected_features) == 1:
-            plt.scatter(kmeans_df_pca[labels == 0], np.zeros_like(kmeans_df_pca[labels == 0]), color=colors[0], label=country_types[0])
-            plt.scatter(kmeans_df_pca[labels == 1], np.zeros_like(kmeans_df_pca[labels == 1]), color=colors[1], label=country_types[1])
-            centroids = kmeans.cluster_centers_.reshape(-1)
-            plt.scatter(centroids[0], 0, s=100, c='black', marker='X', label='Centroids')
+            plt.scatter(kmeans_df_pca[labels == country_types, 0], kmeans_df_pca[labels == country_types, 1], color=colors[country_types], label=country_types[country_types])
+            plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=100, c='black', marker='X', label='Centroids')
+
         else:
             for i, label in enumerate(np.unique(labels)):
-                plt.scatter(kmeans_df_pca[labels == label, 0], kmeans_df_pca[labels == label, 1], color=colors[label], label=country_types[label])
+                plt.scatter(kmeans_df_pca[labels == label, 0], 
+                            kmeans_df_pca[labels == label, 1], 
+                            color=colors[label], 
+                            label=country_types[label])
+
             plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=100, c='black', marker='X', label='Centroids')
 
         plt.xlabel('Principal Component 1')
@@ -1041,15 +1083,32 @@ if st.sidebar.checkbox('Clustering'):
         plt.show()
         st.pyplot()
 
+        # Plot histograms with cluster means
+        fig2, axes = plt.subplots(1, n_clusters, figsize=(12, 6))
+        for cluster in range(n_clusters):
+            axes[cluster].bar(selected_features, cluster_means[cluster])
+            axes[cluster].set_title(f'Cluster {cluster+1}')
+            axes[cluster].set_xlabel('Variables')
+            axes[cluster].set_ylabel('Mean')
+            axes[cluster].set_xticklabels(selected_features, rotation=45)
+            axes[cluster].set_ylim([0, np.max(cluster_means) * 1.2])
+
+        plt.tight_layout()
+        st.pyplot(fig2)
+        
         # Evaluate the clustering results
         st.subheader('Evaluation of the clustering results')
-
-        # evaluate the clustering results using the silhouette score
-        silhouette = silhouette_score(kmeans_df_pca, labels)
-        st.write('Silhouette score: ', round(silhouette, 2))
-        st.write('The Silhouette score (ranging from -1 to 1) measures how similar a point is to its' 
-                 'own cluster (cohesion) compared to other clusters (separation).'
-                 'So, in this case, the score', round(silhouette, 2),  'indicates that the clustering results are good.')
-
+        st.write('Silhouette Score: ', silhouette_score(kmeans_df_pca, labels).round(2))
+        st.write('A Silhouette Score of 0.5 or above indicates that the clustering results are good.')
+        st.write('Calinski Harabasz Score: ', calinski_harabasz_score(kmeans_df_pca, labels).round(2))
+        st.write('A Calinski Harabasz Score of 741 or above indicates that the clustering results are good.')
     else:
         st.write("Please select at least one feature for clustering.")
+
+# ---------------------------------- CONCLUSION SECTION ----------------------------------
+if st.sidebar.checkbox('Conclusion'):
+    st.header('Conclusion')
+    st.write('''
+        In conclusion, we can see that the happiness score is not only influenced by the GDP per capita, 
+        but also by other factors such as social support, freedom, generosity, and government trust.
+        ''')
