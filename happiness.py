@@ -18,11 +18,18 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 happiness_df = pd.read_csv('WorldHappiness_Corruption_2015_2020.csv')
 
 st.title('Does money make happiness?')
-st.subheader('Yes, but not only.')
-st.write('''
-    The World Happiness Report is a landmark survey of the state of global happiness that ranks 791 countries by 
-    how happy their citizens perceive themselves to be.
-    The data used in this dataset Sustainable Development Solutions Network's and the data is referred to 2015-2020.
+# st.subheader('Yes, but not only.')
+st.markdown('''
+    The _World Happiness Report_ is a landmark survey of the state of global happiness that ranks 791 countries by 
+    how happy their citizens perceive themselves to be. The data is referred to 2015-2020.
+    ''')
+
+st.subheader('Why Quantitative Analysis to analyze the happiness?')
+st.markdown('''
+    - Quantitative Analysis allows for **objective measurement** and **quantification of variables**
+    - By collecting numerical data, you can apply various statistical techniques **to draw conclusions**, and **test relationships** between variables
+    - Quantitative Analysis enables you **to uncover patterns, trends, and relationships within the data**
+    - Quantitative Analysis **facilitates numerical comparisons** between variables or groups, in this case for the countries.
     ''')
 
 # ---------------------- COVER IMAGE ----------------------
@@ -57,7 +64,8 @@ if st.sidebar.checkbox('Dataset'):
 # ---------------------- CORRELATION MATRIX SECTION ----------------------
 if st.sidebar.checkbox('Correlation Matrix'):
     st.header('Correlation Matrix')
-    corr = happiness_df.corr()
+    st.set_option('deprecation.showPyplotGlobalUse', False)
+    corr = happiness_df.corr().round(2)
     fig1, ax1 = plt.subplots(figsize=(8, 8))
     sns.heatmap(corr, annot=True, cmap='coolwarm', linewidths=0.5, ax=ax1)
     st.pyplot()
@@ -308,10 +316,11 @@ if st.sidebar.checkbox('Happiness Score Trends'):
         plt.tight_layout()  # Ensures labels and titles are not cut off
         st.pyplot(fig)
 
-        st.caption('''
+        st.markdown('''
             The above plots show the relationship between Happiness and GDP per capita in each continent from 2015 to 2020.
-            We can see that in the most of the cases there is a positive correlation between Happiness and GDP per Capita in each continent.
-            ''')
+            We can see that **in the most of the cases there is a positive correlation between Happiness and GDP per Capita** in each continent.
+        '''
+        )
     
     # ........... Happiness vs Health ...........
     st.subheader('Happiness vs Health')
@@ -441,11 +450,11 @@ if st.sidebar.checkbox('Happiness Score Trends'):
 
         plt.tight_layout()  # Ensures labels and titles are not cut off
         st.pyplot(fig)
-
-        st.caption('''
+        
+        st.markdown('''
             The above plots show the relationship between Happiness and Health in each continent from 2015 to 2020.
-            We can see that in the most of the cases there is a positive correlation between Happiness and Health except for
-            Asia and Australia.
+            We can see that **in the most of the cases there is a positive correlation between Happiness and Health except for
+            Asia and Australia**.
             ''')
 
     # ................ Happiness vs Corruption ................
@@ -577,9 +586,9 @@ if st.sidebar.checkbox('Happiness Score Trends'):
         plt.tight_layout()  # Ensures labels and titles are not cut off
         st.pyplot(fig)
 
-        st.caption('''
+        st.markdown('''
             The above plots show the relationship between Happiness and Corruption in each continent from 2015 to 2020.
-            We can see that in the most of the cases there is a positive correlation between Happiness and Corruption.
+            We can see that **in the most of the cases there is a positive correlation between Happiness and Corruption**.
             ''')
 
     # ............... Happiness vs Family ...............
@@ -711,10 +720,10 @@ if st.sidebar.checkbox('Happiness Score Trends'):
         plt.tight_layout()  # Ensures labels and titles are not cut off
         st.pyplot(fig)
 
-        st.caption('''
+        st.markdown('''
             The above plots show the relationship between Happiness and Family Score in each continent from 2015 to 2020.
-            We can see that in Asia, in North America, in South America and in Australia there is a positive correlation 
-            between Happiness and Family Score.
+            We can see that in **Asia**, in **North America**, in **South America** and in **Australia** there is a **positive correlation 
+            between Happiness and Family Score**.
             ''')
     
     # ............ Happiness vs Generosity ............
@@ -846,9 +855,9 @@ if st.sidebar.checkbox('Happiness Score Trends'):
         plt.tight_layout()  # Ensures labels and titles are not cut off
         st.pyplot(fig)
 
-        st.caption('''
+        st.markdown('''
             The above plots show the relationship between Happiness and Generosity Score in each continent from 2015 to 2020.
-            We can see that in Europe and in Africa there is a negative correlation between Happiness and Generosity Score.
+            We can see that **in Europe and in Africa there is a negative correlation** between Happiness and Generosity Score.
             ''')
 
     # ............ Happiness vs Social Support ............
@@ -980,15 +989,16 @@ if st.sidebar.checkbox('Happiness Score Trends'):
         plt.tight_layout()  # Ensures labels and titles are not cut off
         st.pyplot()
 
-        st.caption('''
+        st.markdown('''
             The above plots show the relationship between Happiness and Social Support Score in each continent from 2015 to 2020.
-            We can see that only in Europe and in Africa there is a positive correlation between Happiness and Social Support.
+            We can see that **only in Europe and in Africa there is a positive correlation between Happiness and Social Support.**
             ''')
     
 # ---------------------------------- CLUSTERING SECTION ----------------------------------
 if st.sidebar.checkbox('Clustering'):
     # ---------------------------------- K-Means++ Clustering ----------------------------------
-    st.subheader('K-Means++ Clustering')
+    st.header('K-Means++ Clustering')
+    st.subheader('Elbow Method')
 
     st.set_option('deprecation.showPyplotGlobalUse', False)
 
@@ -1024,6 +1034,7 @@ if st.sidebar.checkbox('Clustering'):
         wcss.append(kmeans.inertia_)
 
     # Plot the elbow method results
+    plt.figure(figsize=(10, 6))
     plt.plot(range(1, 11), wcss)
     plt.title('Elbow Method')
     plt.xlabel('Number of clusters')
@@ -1097,18 +1108,21 @@ if st.sidebar.checkbox('Clustering'):
         st.pyplot(fig2)
         
         # Evaluate the clustering results
-        st.subheader('Evaluation of the clustering results')
-        st.write('Silhouette Score: ', silhouette_score(kmeans_df_pca, labels).round(2))
-        st.write('A Silhouette Score of 0.5 or above indicates that the clustering results are good.')
-        st.write('Calinski Harabasz Score: ', calinski_harabasz_score(kmeans_df_pca, labels).round(2))
-        st.write('A Calinski Harabasz Score of 741 or above indicates that the clustering results are good.')
+        # st.subheader('Evaluation of the clustering results')
+        # st.write('Silhouette Score: ', silhouette_score(kmeans_df_pca, labels).round(2))
+        # st.write('A Silhouette Score of 0.5 or above indicates that the clustering results are good.')
+        # st.write('Calinski Harabasz Score: ', calinski_harabasz_score(kmeans_df_pca, labels).round(2))
+        # st.write('A Calinski Harabasz Score of 741 or above indicates that the clustering results are good.')
     else:
         st.write("Please select at least one feature for clustering.")
 
 # ---------------------------------- CONCLUSION SECTION ----------------------------------
 if st.sidebar.checkbox('Conclusion'):
     st.header('Conclusion')
+    st.subheader('So, does money make happiness?')
     st.write('''
-        In conclusion, we can see that the happiness score is not only influenced by the GDP per capita, 
-        but also by other factors such as social support, freedom, generosity, and government trust.
+        *Yes, but not only.* \n
+        The happiness **is influenced by the GDP per capita**,
+        so by the money, but also by other factors such as **health**, **corruption** and **freedom**. \n
+        The variables that has a low influence on the happiness are **family**, **generosity** and the **social support**.
         ''')
